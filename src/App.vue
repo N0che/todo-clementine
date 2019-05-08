@@ -1,38 +1,73 @@
 <template>
-  <v-app>
+  <v-app dark v-if="user !== null">
     <v-toolbar app>
       <v-toolbar-title class="headline text-uppercase">
-        <span>Vuetify</span>
-        <span class="font-weight-light">MATERIAL DESIGN</span>
+        <span>Welcome on your todo-list</span>
       </v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-btn
-        flat
-        href="https://github.com/vuetifyjs/vuetify/releases/latest"
-        target="_blank"
-      >
-        <span class="mr-2">Latest Release</span>
-      </v-btn>
+      <v-img
+        :src="require('./assets/glados.png')"
+        contain
+        height="54"
+      ></v-img>
+      <v-spacer></v-spacer>
+      <v-toolbar-title class="headline text-uppercase">
+        <span>end task for a cake slice</span>
+      </v-toolbar-title>
     </v-toolbar>
 
     <v-content>
-      <HelloWorld/>
+      <v-container>
+        <v-layout text-xs-center wrap>
+          <v-flex xs12 v-if="todos !== null">
+            <!-- tasks -->
+            <Todos/>
+            <Todo/>
+          </v-flex>
+          <v-flex xs12 v-else>
+            <!-- no tasks -->
+            <v-img
+              :src="require('./assets/best_friend.png')"
+              class="my-3"
+              contain
+              height="200"
+            ></v-img>
+            you have nothing to do today so .. play with your best friend ... that's just a picture for express what i mean .. don't try to play here go outside
+          </v-flex>
+        </v-layout>
+      </v-container>
     </v-content>
   </v-app>
+  <v-app v-else dark>
+    <!-- no user -->
+    <User/>
+  </v-app> 
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld'
+import Todos from './components/Todos'
+import Todo from './components/Todo'
+import User from './components/User'
+import Vuex from 'vuex'
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
+    Todos,
+    Todo,
+    User
   },
-  data () {
-    return {
-      //
+  computed: {
+    ...Vuex.mapGetters({
+      user: 'getUser',
+      todos: 'getTodos'
+    })
+  },
+  mounted() {
+    if (localStorage.userID) {
+      this.$store.dispatch('selectedUser', localStorage.userID)
     }
+    this.$store.dispatch('readTodos')
   }
 }
 </script>
