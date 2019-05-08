@@ -59,13 +59,13 @@ export default {
   },
   computed: {
     ...Vuex.mapGetters({
-      user: 'getUser',
-      todos: 'getTodos'
+      user: 'user',
+      todos: 'todos'
     })
   },
   mounted() {
-    this.$store.dispatch('readStoredUser')
-    this.$store.dispatch('readTodos')
+    this.$store.dispatch('getTodos')
+    this.$store.dispatch('getStoredUser')
   }
 }
 </script>
