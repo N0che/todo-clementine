@@ -10,7 +10,7 @@ export default new Vuex.Store({
     todos : null,
     todo  : null,
     users : null,
-    user  : true 
+    user  : null 
   },
   getters: {
     getTodos: state => state.todos,
@@ -22,8 +22,12 @@ export default new Vuex.Store({
     TODOS: (state, todos) => {
       state.todos = todos
     },
-    TODO: (state, todo) => {
+    SELECTED_TODO: (state, todo) => {
       state.todo = todo
+    },
+    USERS: (state, users) => {
+      localStorage.userID = users.id
+      state.users = users
     },
     SELECTED_USER: (state, user) => {
       state.user = user
@@ -40,7 +44,14 @@ export default new Vuex.Store({
         }
       )
     },
-    readTodo: () => {
+    readTodo: (state, todoID) => {
+      if (Number.isInteger(todoID)) {
+        axios.get(API_URL + "todos/" + todoID).then(
+          response => {
+            state.commit('SELECTED_TODO', response.data)
+          }
+        )
+      }
     },
     updateTodos: () => {
 
@@ -51,18 +62,27 @@ export default new Vuex.Store({
     deleteTodo: () => {
 
     },
-    selectedTodo: () => {
-
-    },
     //USER ACTIONS
-    readUsers: () => {
-
+    readUsers: (state) => {
+      axios.get(API_URL + "users").then(
+        response => {
+          state.commit('USERS', response.data)
+        }
+      )
     },
-    readUser: () => {
-
+    readUser: (state, userID) => {
+      if (Number.isInteger(userID)) {
+        axios.get(API_URL + "todos/" + userID).then(
+          response => {
+            state.commit('SELECTED_USER', response.data)
+          }
+        )
+      }
     },
-    selectedUser: () => {
-
+    readStoredUser: (state) => {
+      if (localStorage.userID) {
+        state.commit('SELECTED_USER', localStorage.userID)
+      }
     }
   }
 })

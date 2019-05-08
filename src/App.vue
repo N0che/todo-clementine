@@ -64,9 +64,7 @@ export default {
     })
   },
   mounted() {
-    if (localStorage.userID) {
-      this.$store.dispatch('selectedUser', localStorage.userID)
-    }
+    this.$store.dispatch('readStoredUser')
     this.$store.dispatch('readTodos')
   }
 }
