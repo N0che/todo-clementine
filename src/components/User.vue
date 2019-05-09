@@ -26,25 +26,29 @@
 </template>
 
 <script>
-import Vuex from 'vuex'
+import Api from '../config/Api'
 
   export default {
     data: () => ({
-      selectedUser: null
+      selectedUser: null,
+      users: null
     }),
-    computed: {
-      ...Vuex.mapGetters({
-        users: 'users'
-      })
-    },
     methods: {
       selectUser(userID) {
         localStorage.userID = userID
         this.$store.dispatch('selectedUser', userID)
       }
     },
-    mounted() {
-      this.$store.dispatch('getUsers')
+    created() {
+      Api.get("users").then(
+        response => {
+          this.users = response.data
+        },
+         // eslint-disable-next-line
+         err => {
+          this.$store.commit('ADD_ERROR', 'API_ERROR')
+        }
+      )
     }
   }
 </script>

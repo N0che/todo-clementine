@@ -2,35 +2,48 @@
   <v-app dark v-if="user !== null">
     <v-toolbar app>
       <v-flex xs4>
-      <v-toolbar-title class="headline text-uppercase">
-        <span style="cursor: pointer" @click="editUser()">Welcome {{ user.username }} <v-icon size="25">edit</v-icon></span>
-      </v-toolbar-title>
+        <v-toolbar-title class="headline text-uppercase">
+          <span style="cursor: pointer" @click="editUser()"><v-icon size="25">edit</v-icon> Welcome {{ user.username }}</span>
+        </v-toolbar-title>
       </v-flex>
       
       <v-flex xs4>
-      <v-img
-        :src="require('./assets/glados.png')"
-        contain
-        height="54"
-      ></v-img>
+        <v-img
+          :src="require('./assets/glados.png')"
+          contain
+          height="54"
+        ></v-img>
       </v-flex>
       
       <v-flex xs4>
-      <v-toolbar-title class="text-xs-right headline text-uppercase">
-        <span>end task for a cake</span>
-      </v-toolbar-title>
-      </v-flex>
+        <v-toolbar-title class="text-xs-right headline text-uppercase">
+          <span>end task for a cake</span>
+        </v-toolbar-title>
+        </v-flex>
     </v-toolbar>
 
     <v-content>
-      <v-container>
-        <v-layout text-xs-center wrap>
-          <v-flex xs12 v-if="todos !== null">
-            <!-- tasks -->
-            <Todos/>
-            <Todo/>
-          </v-flex>
-          <v-flex xs12 v-else>
+      <v-container fluid grid-list-md>
+        <v-layout v-if="errors" row wrap>
+          <v-alert
+              v-for="(error, key) in errors"
+              :key="key"
+              :value="true"
+              color="error"
+            >
+            <v-layout row>
+              <v-flex xs11>{{ error }}</v-flex>
+              <v-flex xs1 @click="undisplayError(key)" style="cursor: pointer"><v-icon size="25">close</v-icon></v-flex>
+            </v-layout>
+          </v-alert>
+        </v-layout>
+
+        <v-layout row wrap v-if="todos !== null">
+          <!-- tasks -->
+          <Todos/>
+        </v-layout>
+        <v-layout text-xs-center wrap v-else>
+          <v-flex xs12>
             <!-- no tasks -->
             <v-img
               :src="require('./assets/best_friend.png')"
@@ -45,14 +58,13 @@
     </v-content>
   </v-app>
   <v-app v-else dark>
-    <!-- no user -->
+    <!-- user -->
     <User/>
   </v-app> 
 </template>
 
 <script>
 import Todos from './components/Todos'
-import Todo from './components/Todo'
 import User from './components/User'
 import Vuex from 'vuex'
 
@@ -60,18 +72,21 @@ export default {
   name: 'App',
   components: {
     Todos,
-    Todo,
     User
   },
   computed: {
     ...Vuex.mapGetters({
       user: 'user',
-      todos: 'todos'
-    })
+      todos: 'todos',
+      errors: 'errors'
+    }),
   },
   methods: {
     editUser() {
       this.$store.dispatch("editSelectedUser")
+    },
+    undisplayError(errorKey) {
+      this.$store.dispatch('eraseError', errorKey)
     }
   },
   mounted() {

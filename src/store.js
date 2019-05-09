@@ -8,7 +8,12 @@ Vue.use(Vuex)
 export default new Vuex.Store({
   state: {
     todos : null,
-    todo  : null,
+    selectedTodo  : {
+      id : 0,
+      userId : null,
+      title : "",
+      completed : false
+    },
 
     users : null,
     user  : null,
@@ -17,19 +22,22 @@ export default new Vuex.Store({
   },
   getters: {
     todos: state => state.todos,
-    todo: state => state.todo,
+    selectedTodo: state => {
+      if (state.selectedTodo) {
+        return state.selectedTodo
+      }
+    },
 
-    users: state => state.users,
     user: state => state.user,
 
     errors: state => {
-      let formatedErrors = Array()
+      let formatedErrors = {}
       if (state.errors) {
-        state.errors.map(error => {
-          if (ErrorCodes.hasOwnProperty(error)) {
-            formatedErrors.push(ErrorCodes[error])
+        Object.entries(state.errors).map(error => {
+          if (ErrorCodes.hasOwnProperty(error[0])) {
+            formatedErrors[error[0]] = ErrorCodes[error[1]]
           } else {
-            formatedErrors.push(error)
+            formatedErrors[error[0]] = error[1]
           }
         })
       }
@@ -39,16 +47,33 @@ export default new Vuex.Store({
   },
   mutations: {
     TODOS: (state, todos) => {
+      todos.map(todo => {
+        let tag = ""
+        if (todo.title.indexOf('#important') != -1) {
+          tag = 'important'
+          todo.title.replace('#important', '')
+        } else if (todo.title.indexOf('#later') != -1) {
+          tag = 'later'
+          todo.title.replace('#later', '')
+        } else {
+          tag = 'later'
+        }
+        
+        todo.tag = tag
+      })
+
       state.todos = todos
     },
     SELECTED_TODO: (state, todo) => {
-      state.todo = todo
+      state.selectedTodo = todo
     },
-
-
-    USERS: (state, users) => {
-      state.users = users
+    RESET_SELECTED_TODO: (state) => {
+      Vue.set(state.selectedTodo, "id", 0)
+      Vue.set(state.selectedTodo, "userId", state.user.id)
+      Vue.set(state.selectedTodo, "title", "")
+      Vue.set(state.selectedTodo, "completed", false)
     },
+    
     SELECTED_USER: (state, user) => {
       if (user) {
         localStorage.setItem('userID', user.id)
@@ -57,16 +82,23 @@ export default new Vuex.Store({
     },
 
 
-    ERROR: (state, key) => {
-      if (!state.errors) state.errors = Array()
-      state.errors.push(key)
+    ADD_ERROR: (state, key) => {
+      if (!state.errors) state.errors = {}
+      Vue.set(state.errors, key, key)
     },
-    EMPTY_ERROR: (state) => {
-      state.errors = null
+    ERASE_ERROR: (state, key) => {
+      if (state.errors.hasOwnProperty(key))
+        Vue.delete(state.errors, key)
+      
+      if (state.errors.lenght == 0)
+        state.errors = null
     }
   },
   actions: {
     //TODO ACTIONS (that's confusing)
+    resetSelectedTodo ({ commit }) {
+      commit('RESET_SELECTED_TODO')
+    },
     createTodo ({ commit, dispatch, state }, data) {
       if (data.title) {
         Api.post('todos', {
@@ -76,85 +108,87 @@ export default new Vuex.Store({
         }).then(
           () => {
             dispatch('getTodos')
+          },
+           // eslint-disable-next-line
+           err => {
+            commit('ADD_ERROR', 'API_ERROR')
           }
-        ).catch(
-          commit('ERROR', 'API_ERROR')
         )
       } else {
-        commit('ERROR', 'TODO_EMPTY_TITLE')
+         commit('ADD_ERROR', 'TODO_EMPTY_TITLE')
       }
     },
     getTodos ({ commit }) {
       Api.get("todos").then(
         response => {
           commit('TODOS', response.data)
+        },
+         // eslint-disable-next-line
+         err => {
+           commit('ADD_ERROR', 'API_ERROR')
         }
-      ).catch(
-        commit('ERROR', 'API_ERROR')
       )
     },
-    getTodo ({ commit }, todoID) {
+    getSelectedTodo ({ commit }, todoID) {
       if (Number.isInteger(todoID)) {
         Api.get("todos/" + todoID).then(
           response => {
             commit('SELECTED_TODO', response.data)
+          },
+           // eslint-disable-next-line
+           err => {
+             commit('ADD_ERROR', 'API_ERROR')
           }
-        ).catch(
-          commit('ERROR', 'API_ERROR')
         )
       } else {
-        commit('ERROR', 'READ_TODO_NOT_INT')
+         commit('ADD_ERROR', 'READ_TODO_NOT_INT')
       }
     },
     updateTodo ({ commit, dispatch }, data) {
       if (data.title) {
-        Api.post('todos/' + data.id, {
-          title: data.title,
-          completed: data.completed
+        Api.put('todos/' + data.id, {
+          title: data.title + " #" + data.tag,
+          completed: data.completed || false
         }).then(
           () => {
             dispatch('getTodos')
+          },
+           // eslint-disable-next-line
+           err => {
+             commit('ADD_ERROR', 'API_ERROR')
           }
-        ).catch(
-          commit('ERROR', 'API_ERROR')
         )
       } else {
-        commit('ERROR', 'TODO_EMPTY_TITLE')
+         commit('ADD_ERROR', 'TODO_EMPTY_TITLE')
       }
     },
     deleteTodo ({ commit, dispatch }, todo) {
       Api.delete('todos/' + todo.id).then(
         () => {
           dispatch('getTodos')
+        },
+         // eslint-disable-next-line
+         err => {
+           commit('ADD_ERROR', 'API_ERROR')
         }
-      ).catch(
-        commit('ERROR', 'API_ERROR')
       )
     },
     //USER ACTIONS
-    getUsers ({ commit }) {
-      Api.get("users").then(
-        response => {
-          commit('USERS', response.data)
-        }
-      ).catch(
-        commit('ERROR', 'API_ERROR')
-      )
-    },
     selectedUser ({ commit }, userID){
       if (Number.isInteger(userID)) {
         Api.get("users/" + userID).then(
           response => {
             commit('SELECTED_USER', response.data)
+            commit('RESET_SELECTED_TODO')
+          },
+           // eslint-disable-next-line
+           err => {
+             commit('ADD_ERROR', 'API_ERROR')
           }
-        ).catch(
-          commit('ERROR', 'API_ERROR')
         )
-      } else {
-        commit('ERROR', 'READ_USER_NOT_INT')
       }
     },
-    editSelectedUser ({ commit }){
+    editSelectedUser ({ commit }) {
       commit('SELECTED_USER', null)
     },
     getStoredUser ({ dispatch }) {
@@ -162,9 +196,9 @@ export default new Vuex.Store({
         dispatch('selectedUser', parseInt(localStorage.getItem('userID')))
       }
     },
-    //ERRORS ACTION
-    emptyError: ({ commit }) => {
-      commit("EMPTY_ERRORS")
+    //ERROR ACTIONS
+    eraseError({ commit }, key) {
+      commit('ERASE_ERROR', key)
     }
   }
 })
