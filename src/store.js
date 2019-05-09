@@ -47,10 +47,10 @@ export default new Vuex.Store({
 
 
     USERS: (state, users) => {
-      localStorage.userID = users.id
       state.users = users
     },
     SELECTED_USER: (state, user) => {
+      localStorage.setItem('userID', user.id)
       state.user = user
     },
 
@@ -58,11 +58,14 @@ export default new Vuex.Store({
     ERROR: (state, key) => {
       if (!state.errors) state.errors = Array()
       state.errors.push(key)
+    },
+    EMPTY_ERROR: (state) => {
+      state.errors = null
     }
   },
   actions: {
     //TODO ACTIONS (that's confusing)
-    createTodo: (state, data) => {
+    createTodo ({ commit, dispatch, state }, data) {
       if (data.title) {
         Api.post('todos', {
           userId: state.user.id,
@@ -70,93 +73,93 @@ export default new Vuex.Store({
           completed: false
         }).then(
           () => {
-            state.dispatch('getTodos')
+            dispatch('getTodos')
           }
         ).catch(
-          state.commit('ERROR', 'API_ERROR')
+          commit('ERROR', 'API_ERROR')
         )
       } else {
-        state.commit('ERROR', 'TODO_EMPTY_TITLE')
+        commit('ERROR', 'TODO_EMPTY_TITLE')
       }
     },
-    getTodos: (state) => {
+    getTodos ({ commit }) {
       Api.get("todos").then(
         response => {
-          state.commit('TODOS', response.data)
+          commit('TODOS', response.data)
         }
       ).catch(
-        state.commit('ERROR', 'API_ERROR')
+        commit('ERROR', 'API_ERROR')
       )
     },
-    getTodo: (state, todoID) => {
+    getTodo ({ commit }, todoID) {
       if (Number.isInteger(todoID)) {
         Api.get("todos/" + todoID).then(
           response => {
-            state.commit('SELECTED_TODO', response.data)
+            commit('SELECTED_TODO', response.data)
           }
         ).catch(
-          state.commit('ERROR', 'API_ERROR')
+          commit('ERROR', 'API_ERROR')
         )
       } else {
-        state.commit('ERROR', 'READ_TODO_NOT_INT')
+        commit('ERROR', 'READ_TODO_NOT_INT')
       }
     },
-    updateTodo: (state, data) => {
+    updateTodo ({ commit, dispatch }, data) {
       if (data.title) {
         Api.post('todos/' + data.id, {
           title: data.title,
           completed: data.completed
         }).then(
           () => {
-            state.dispatch('getTodos')
+            dispatch('getTodos')
           }
         ).catch(
-          state.commit('ERROR', 'API_ERROR')
+          commit('ERROR', 'API_ERROR')
         )
       } else {
-        state.commit('ERROR', 'TODO_EMPTY_TITLE')
+        commit('ERROR', 'TODO_EMPTY_TITLE')
       }
     },
-    deleteTodo: (state, todo) => {
+    deleteTodo ({ commit, dispatch }, todo) {
       Api.delete('todos/' + todo.id).then(
         () => {
-          state.dispatch('getTodos')
+          dispatch('getTodos')
         }
       ).catch(
-        state.commit('ERROR', 'API_ERROR')
+        commit('ERROR', 'API_ERROR')
       )
     },
     //USER ACTIONS
-    getUsers: (state) => {
+    getUsers ({ commit }) {
       Api.get("users").then(
         response => {
-          state.commit('USERS', response.data)
+          commit('USERS', response.data)
         }
       ).catch(
-        state.commit('ERROR', 'API_ERROR')
+        commit('ERROR', 'API_ERROR')
       )
     },
-    selectedUser: (state, userID) => {
+    selectedUser ({ commit }, userID){
       if (Number.isInteger(userID)) {
-        Api.get("todos/" + userID).then(
+        Api.get("users/" + userID).then(
           response => {
-            state.commit('SELECTED_USER', response.data)
+            commit('SELECTED_USER', response.data)
           }
         ).catch(
-          state.commit('ERROR', 'API_ERROR')
+          commit('ERROR', 'API_ERROR')
         )
       } else {
-        state.commit('ERROR', 'READ_USER_NOT_INT')
+        commit('ERROR', 'READ_USER_NOT_INT')
       }
     },
-    getStoredUser: (state) => {
-      if (localStorage.userID) {
-        state.commit('SELECTED_USER', localStorage.userID)
+    getStoredUser ({ dispatch }) {
+      if (localStorage.getItem('userID')) {
+        dispatch('selectedUser', parseInt(localStorage.getItem('userID')))
       }
     },
     //ERRORS ACTION
-    emptyError: (state) => {
-      state.errors = null
+    emptyError: ({ commit }) => {
+      commit("EMPTY_ERRORS")
     }
   }
 })
