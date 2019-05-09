@@ -50,7 +50,9 @@ export default new Vuex.Store({
       state.users = users
     },
     SELECTED_USER: (state, user) => {
-      localStorage.setItem('userID', user.id)
+      if (user) {
+        localStorage.setItem('userID', user.id)
+      }
       state.user = user
     },
 
@@ -151,6 +153,9 @@ export default new Vuex.Store({
       } else {
         commit('ERROR', 'READ_USER_NOT_INT')
       }
+    },
+    editSelectedUser ({ commit }){
+      commit('SELECTED_USER', null)
     },
     getStoredUser ({ dispatch }) {
       if (localStorage.getItem('userID')) {

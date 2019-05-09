@@ -1,19 +1,25 @@
 <template>
   <v-app dark v-if="user !== null">
     <v-toolbar app>
+      <v-flex xs4>
       <v-toolbar-title class="headline text-uppercase">
-        <span>Welcome on your todo-list</span>
+        <span @click="editUser()">Welcome {{ user.username }} <v-icon size="25">edit</v-icon></span>
       </v-toolbar-title>
-      <v-spacer></v-spacer>
+      </v-flex>
+      
+      <v-flex xs4>
       <v-img
         :src="require('./assets/glados.png')"
         contain
         height="54"
       ></v-img>
-      <v-spacer></v-spacer>
-      <v-toolbar-title class="headline text-uppercase">
-        <span>end task for a cake slice</span>
+      </v-flex>
+      
+      <v-flex xs4>
+      <v-toolbar-title class="text-xs-right headline text-uppercase">
+        <span>end task for a cake</span>
       </v-toolbar-title>
+      </v-flex>
     </v-toolbar>
 
     <v-content>
@@ -62,6 +68,11 @@ export default {
       user: 'user',
       todos: 'todos'
     })
+  },
+  methods: {
+    editUser() {
+      this.$store.dispatch("editSelectedUser")
+    }
   },
   mounted() {
     this.$store.dispatch('getTodos')
