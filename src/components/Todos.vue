@@ -60,6 +60,7 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
+          <v-btn v-if="selectedTodo.id" color="red darken-1" flat @click="deleteTodo(selectedTodo)">Delete</v-btn>
           <v-btn color="blue darken-1" flat @click="addEdit = false">Close</v-btn>
             <v-btn color="blue darken-1" flat @click="saveTodo(selectedTodo)">Save</v-btn>
         </v-card-actions>
@@ -154,6 +155,11 @@
           this.$store.dispatch('updateTodo', todo)
         }
         
+        this.addEdit = false
+      },
+      deleteTodo: function (todo) {
+        this.$store.dispatch('deleteTodo', todo)
+
         this.addEdit = false
       }
     },
