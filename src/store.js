@@ -76,7 +76,7 @@ export default new Vuex.Store({
           state.commit('ERROR', 'API_ERROR')
         )
       } else {
-        state.commit('ERROR', 'CREATE_TODO_EMPTY_TITLE')
+        state.commit('ERROR', 'TODO_EMPTY_TITLE')
       }
     },
     getTodos: (state) => {
@@ -101,11 +101,30 @@ export default new Vuex.Store({
         state.commit('ERROR', 'READ_TODO_NOT_INT')
       }
     },
-    updateTodo: () => {
-
+    updateTodo: (state, data) => {
+      if (data.title) {
+        Api.post('todos/' + data.id, {
+          title: data.title,
+          completed: data.completed
+        }).then(
+          () => {
+            state.dispatch('getTodos')
+          }
+        ).catch(
+          state.commit('ERROR', 'API_ERROR')
+        )
+      } else {
+        state.commit('ERROR', 'TODO_EMPTY_TITLE')
+      }
     },
-    deleteTodo: () => {
-
+    deleteTodo: (state, todo) => {
+      Api.delete('todos/' + todo.id).then(
+        () => {
+          state.dispatch('getTodos')
+        }
+      ).catch(
+        state.commit('ERROR', 'API_ERROR')
+      )
     },
     //USER ACTIONS
     getUsers: (state) => {
@@ -134,6 +153,10 @@ export default new Vuex.Store({
       if (localStorage.userID) {
         state.commit('SELECTED_USER', localStorage.userID)
       }
+    },
+    //ERRORS ACTION
+    emptyError: (state) => {
+      state.errors = null
     }
   }
 })

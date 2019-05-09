@@ -2,5 +2,5 @@
     "API_ERROR" : "Sorry we have some problems to load your data ... Wesley? did you did something?",
     "READ_TODO_NOT_INT" : "You seems to have some problems with the todo task identifier",
     "READ_USER_NOT_INT" : "You seems to have some problems with your user identifier",
-    "CREATE_TODO_EMPTY_TITLE" : "The task title is empty ... the previous one was created by weasley ... shame"
+    "TODO_EMPTY_TITLE" : "The task title is empty ... the previous one was created by weasley ... shame"
 }
