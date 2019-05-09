@@ -3,7 +3,7 @@
     <v-toolbar app>
       <v-flex xs4>
       <v-toolbar-title class="headline text-uppercase">
-        <span @click="editUser()">Welcome {{ user.username }} <v-icon size="25">edit</v-icon></span>
+        <span style="cursor: pointer" @click="editUser()">Welcome {{ user.username }} <v-icon size="25">edit</v-icon></span>
       </v-toolbar-title>
       </v-flex>
       
